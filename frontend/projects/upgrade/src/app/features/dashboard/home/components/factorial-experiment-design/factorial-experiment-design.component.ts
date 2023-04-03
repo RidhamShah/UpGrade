@@ -389,12 +389,6 @@ export class FactorialExperimentDesignComponent implements OnInit, OnChanges, On
     }
     this.factorDataSource.next(this.factor?.controls);
     this.decisionPointDataSource.next(this.decisionPoints.controls);
-    // if (type) {
-    //   this[type].nativeElement?.scroll({
-    //     top: this[type].nativeElement.scrollHeight - 91,
-    //     behavior: 'smooth',
-    //   });
-    // }
   }
 
   isDecisionPointTableRowValid(): boolean {
@@ -613,6 +607,7 @@ export class FactorialExperimentDesignComponent implements OnInit, OnChanges, On
         this.saveData(eventType);
         break;
       case NewExperimentDialogEvents.SAVE_DATA:
+        this.handleConditionsButtonClick();
         if (!this.isExperimentEditable) {
           this.emitExperimentDialogEvent.emit({
             type: eventType,
