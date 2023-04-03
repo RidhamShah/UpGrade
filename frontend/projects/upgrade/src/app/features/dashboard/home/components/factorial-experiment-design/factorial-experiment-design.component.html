@@ -134,7 +134,6 @@
                     <ng-container *ngIf="(decisionPointsTableEditIndex$ | async) !== rowIndex">
                       <mat-icon class="icon">create</mat-icon>
                     </ng-container>
-
                     <!-- Done Icon -->
                     <ng-container *ngIf="(decisionPointsTableEditIndex$ | async) === rowIndex">
                       <mat-icon class="icon">done</mat-icon>
@@ -147,9 +146,11 @@
                     [disabled]="(isFormLockedForEdit$ | async) && (decisionPointsTableEditIndex$ | async) !== rowIndex"
                     (click)="handleDecisionPointTableClearOrRemoveRow(rowIndex)"
                   >
+                    <!-- Delete Icon -->
                     <ng-container *ngIf="(decisionPointsTableEditIndex$ | async) !== rowIndex">
                       <mat-icon class="icon">delete_outline</mat-icon>
                     </ng-container>
+                    <!-- Cancel/Clear Icon -->
                     <ng-container *ngIf="(decisionPointsTableEditIndex$ | async) === rowIndex">
                       <mat-icon class="icon">clear</mat-icon>
                     </ng-container>
@@ -305,10 +306,40 @@
                   <button
                     mat-icon-button
                     type="button"
-                    [disabled]="!isExperimentEditable"
-                    (click)="removeFactor(factorIndex)"
+                    class="row-action-btn"
+                    [disabled]="
+                      ((isFormLockedForEdit$ | async) && (factorsTableEditIndex$ | async) !== rowIndex) ||
+                      !isExperimentEditable
+                    "
+                    (click)="handleFactorTableEditClick(rowData.getRawValue(), rowIndex)"
                   >
-                    <mat-icon class="remove-icon"> delete_outline </mat-icon>
+                    <!-- Edit Icon -->
+                    <ng-container *ngIf="(factorsTableEditIndex$ | async) !== rowIndex">
+                      <mat-icon class="icon">create</mat-icon>
+                    </ng-container>
+                    <!-- Done Icon -->
+                    <ng-container
+                      *ngIf="(factorsTableEditIndex$ | async) === rowIndex && (levelsTableEditIndex$ | async) === null"
+                    >
+                      <mat-icon class="icon">done</mat-icon>
+                    </ng-container>
+                  </button>
+                  <button
+                    type="button"
+                    class="row-action-btn"
+                    [disabled]="(isFormLockedForEdit$ | async) && (factorsTableEditIndex$ | async) !== rowIndex"
+                    (click)="handleFactorTableClearOrRemoveRow(rowIndex)"
+                  >
+                    <!-- Delete Icon -->
+                    <ng-container *ngIf="(factorsTableEditIndex$ | async) !== rowIndex">
+                      <mat-icon class="icon">delete_outline</mat-icon>
+                    </ng-container>
+                    <!-- Cancel/Clear Icon -->
+                    <ng-container
+                      *ngIf="(factorsTableEditIndex$ | async) === rowIndex && (levelsTableEditIndex$ | async) === null"
+                    >
+                      <mat-icon class="icon">clear</mat-icon>
+                    </ng-container>
                   </button>
                 </mat-cell>
               </ng-container>
@@ -363,21 +394,39 @@
                             <mat-form-field floatLabel="never">
                               <span
                                 [matTooltip]="
-                                  factorialExperimentDesignForm.getRawValue('alias')?.factors[factorIndex]?.levels[
-                                    levelIndex
-                                  ]?.alias
+                                  factorialExperimentDesignForm.getRawValue('payload')?.factors[factorIndex]?.levels[
+                                  levelPayloadIndex
+                                  ]?.payload
                                 "
                                 matTooltipPosition="above"
                               >
-                                <input
-                                  matInput
-                                  [placeholder]="'home.new-experiment.design.payload.placeholder.text' | translate"
-                                  formControlName="alias"
-                                  [value]="alias"
-                                  autocomplete="off"
-                                />
+                                {{
+                                  factorialExperimentDesignForm.getRawValue('payload')?.factors[factorIndex]?.levels[
+                                  levelPayloadIndex
+                                  ]?.payload | truncate : 35
+                                }}
                               </span>
-                            </mat-form-field>
+                            </ng-container>
+                            <ng-container *ngIf="(levelsTableEditIndex$ | async) === levelPayloadIndex">
+                              <mat-form-field floatLabel="never">
+                                <span
+                                  [matTooltip]="
+                                    factorialExperimentDesignForm.getRawValue('payload')?.factors[factorIndex]?.levels[
+                                    levelPayloadIndex
+                                    ]?.payload
+                                  "
+                                  matTooltipPosition="above"
+                                >
+                                  <input
+                                    matInput
+                                    [placeholder]="'home.new-experiment.design.payload.placeholder.text' | translate"
+                                    formControlName="payload"
+                                    [value]="payload"
+                                    autocomplete="off"
+                                  />
+                                </span>
+                              </mat-form-field>
+                            </ng-container>
                           </mat-cell>
                         </ng-container>
 
@@ -400,7 +449,7 @@
                         </ng-container>
 
                         <!-- Actions Column -->
-                         <!-- <ng-container matColumnDef="actions">
+                          <ng-container matColumnDef="actions">
                           <mat-header-cell *matHeaderCellDef class="ft-14-700"></mat-header-cell>
                           <mat-cell *matCellDef="let rowData; let rowIndex = index" class="actions-cell" style="justify-content: flex-end">
                             <button
@@ -411,12 +460,18 @@
                               "
                               (click)="handleRowEditClick(rowData, rowIndex)"
                             >
-                              <ng-container *ngIf="(tableLevelEditIndex$ | async) !== rowIndex">
+                              <!-- Edit Icon -->
+                              <ng-container *ngIf="(levelsTableEditIndex$ | async) !== rowIndex">
                                 <mat-icon class="icon">create</mat-icon>
                               </ng-container>
-                              <ng-container *ngIf="(tableLevelEditIndex$ | async) === rowIndex">
-                                <mat-icon class="icon" 
-                                  (click)="handleRowEditDoneClick(rowIndex)">done</mat-icon>
+                              <!-- Done Icon -->
+                              <ng-container
+                                *ngIf="
+                                  (levelsTableEditIndex$ | async) === rowIndex &&
+                                  (factorsTableIndex$ | async) === factorIndex
+                                "
+                              >
+                                <mat-icon class="icon">done</mat-icon>
                               </ng-container>
                             </button>
                             <button
@@ -425,15 +480,22 @@
                               [disabled]="(isFormLockedForEdit$ | async) && (tableLevelEditIndex$ | async) !== rowIndex"
                               (click)="handleClear(rowIndex)"
                             >
-                              <ng-container *ngIf="(tableLevelEditIndex$ | async) !== rowIndex">
+                              <!-- Delete Icon -->
+                              <ng-container *ngIf="(levelsTableEditIndex$ | async) !== rowIndex">
                                 <mat-icon class="icon">delete_outline</mat-icon>
                               </ng-container>
-                              <ng-container *ngIf="(tableLevelEditIndex$ | async) === rowIndex">
+                              <!-- Cancel/Clear Icon -->
+                              <ng-container
+                                *ngIf="
+                                  (levelsTableEditIndex$ | async) === rowIndex &&
+                                  (factorsTableIndex$ | async) === factorIndex
+                                "
+                              >
                                 <mat-icon class="icon">clear</mat-icon>
                               </ng-container>
                             </button>                            
                           </mat-cell>
-                        </ng-container> -->
+                        </ng-container>
 
                         <mat-header-row *matHeaderRowDef="levelDisplayedColumns; sticky: true"></mat-header-row>
                         <mat-row *matRowDef="let row; columns: levelDisplayedColumns"></mat-row>
@@ -551,6 +613,7 @@
             <br />
             <br />
             <div *ngIf="this.factor.length >= 2">
+              <br />
               <app-conditions-table
                 [isAnyRowRemoved]="isAnyRowRemoved"
                 [experimentInfo]="experimentInfo"
